@@ -27,7 +27,7 @@ public class MainMenuController : MonoBehaviour
 
     public void OnPressPlay()
     {
-        GameManager.Instance.SetState(GameState.Waiting); // Think a better way to do this
+        //GameManager.Instance.SetState(GameState.Waiting); // Think a better way to do this
         SceneManager.LoadScene(1);
     }
 

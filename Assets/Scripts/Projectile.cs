@@ -17,12 +17,7 @@ public class Projectile : MonoBehaviour, IPoolObject<Projectile>
     {
         _rb = GetComponent<Rigidbody2D>();
     }
-
-    void Start()
-    {
-        //Initialize(sp);
-    }
-
+    
     public void Initialize(float speed)
     {
         _rb.velocity = transform.up * speed;
@@ -45,14 +40,13 @@ public class Projectile : MonoBehaviour, IPoolObject<Projectile>
         if (col.gameObject.TryGetComponent(out IDamageable damageable))
         {
             damageable.TakeDamage(damage);
-            Debug.Log("Damaged " + col.gameObject.name +". Health left: " + damageable.Health);
         }
 
         if(!col.gameObject.TryGetComponent(out ScreenBoundaries boundaries)) DestroyProjectile();
         
     }
 
-    void DestroyProjectile() // TODO: Back to pool
+    void DestroyProjectile()
     {
         CancelInvoke();
         Pool.Release(this);

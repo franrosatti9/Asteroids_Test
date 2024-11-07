@@ -36,6 +36,23 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnEnable()
+    {
+        SceneManager.activeSceneChanged += HandleSceneChanged;
+    }
+
+    private void HandleSceneChanged(Scene unloaded, Scene loaded)
+    {
+        if (loaded.buildIndex == 0)
+        {
+            SetState(GameState.Menu);
+        }
+        else if (loaded.buildIndex == 1)
+        {
+            SetState(GameState.Waiting);
+        }
+    }
+
     private void Start()
     {
         currentState = GameState.Menu;
