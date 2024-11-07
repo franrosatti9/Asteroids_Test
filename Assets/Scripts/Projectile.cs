@@ -7,7 +7,6 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     [SerializeField] private int damage = 1;
-    [SerializeField] private float speed = 3f;
     [SerializeField] private float lifeTime = 3f;
 
     Rigidbody2D _rb;
@@ -19,21 +18,27 @@ public class Projectile : MonoBehaviour
 
     void Start()
     {
-        Initialize();
+        //Initialize(sp);
     }
 
-    public void Initialize()
+    public void Initialize(float speed)
     {
         _rb.velocity = transform.up * speed;
         Invoke(nameof(DestroyProjectile), lifeTime);
 
     }
 
-    public void OnCollisionEnter2D(Collision2D collision)
+    public void Reset()
     {
-        if (collision.gameObject.TryGetComponent(out IDamageable damageable))
+        _rb.velocity = Vector2.zero; 
+    }
+
+    public void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.gameObject.TryGetComponent(out IDamageable damageable))
         {
             damageable.TakeDamage(damage);
+            Debug.Log("Damaged " + col.gameObject.name +". Health left: " + damageable.Health);
         }
 
         DestroyProjectile();
@@ -41,6 +46,7 @@ public class Projectile : MonoBehaviour
 
     void DestroyProjectile() // TODO: Back to pool
     {
+        CancelInvoke();
         Destroy(gameObject);
     }
 }

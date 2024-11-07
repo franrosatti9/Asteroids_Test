@@ -1,10 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [SerializeField] private TextMeshProUGUI scoreText;
+    private void OnEnable()
+    {
+        GameManager.Instance.OnScoreUpdated += UpdateGameScore;
+    }
+    
+    private void OnDisable()
+    {
+        GameManager.Instance.OnScoreUpdated -= UpdateGameScore;
+    }
+
     void Start()
     {
         
@@ -14,5 +26,10 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    void UpdateGameScore(int scoreValue)
+    {
+        scoreText.text = $"Score: {scoreValue}";
     }
 }
