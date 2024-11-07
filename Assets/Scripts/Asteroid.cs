@@ -3,13 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Pool;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class Asteroid : MonoBehaviour, IDamageable
+public class Asteroid : MonoBehaviour, IDamageable, IPoolObject<Asteroid>
 {
     private Rigidbody2D _rb;
     private int scoreValue;
     public int Health { get; private set; }
+    public ObjectPool<Asteroid> Pool { get; private set; }
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
@@ -47,13 +49,15 @@ public class Asteroid : MonoBehaviour, IDamageable
         if(Health <= 0) Die();
     }
 
-    public void Die() // TODO: Back to pool
+    public void Die()
     {
+        //TODO: Deactivate WraparoundObject to avoid unnecessary calculations 
+        
         AudioManager.Instance.PlaySFX(SFXType.DestroyAsteroid);
         GameManager.Instance.AddScore(scoreValue);
-        Destroy(gameObject);
+        Pool.Release(this);
     }
-
+    
     public void Reset()
     {
         transform.localScale = Vector3.one;
@@ -61,11 +65,17 @@ public class Asteroid : MonoBehaviour, IDamageable
         Health = 1;
     }
 
+    public void SetPool(ObjectPool<Asteroid> pool)
+    {
+        Pool = pool;
+    }
+
     private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.TryGetComponent(out PlayerController player))
         {
             player.TakeDamage(1);
+            Pool.Release(this);
         }
     }
 }

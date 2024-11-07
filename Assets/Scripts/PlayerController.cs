@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour, IDamageable
 {
     [SerializeField] private InputHandler input;
+    [SerializeField] private SpriteRenderer playerVisual;
     
     [Header("Movement")]
     [SerializeField] private float thrustForce = 3;
@@ -22,7 +24,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     [FormerlySerializedAs("health")]
     [Header("Health")]
     [SerializeField] private int maxHealth = 5;
+    [SerializeField] float invulnerableTime = 1f;
+    
+    ObjectPool<Projectile> _projectilePool;
 
+    bool invincible = false;
     private Rigidbody2D _rb;
     public int Health { get; private set;}
 
@@ -34,8 +40,37 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     void Start()
     {
-        
+        _projectilePool =
+            new ObjectPool<Projectile>(CreateProjectile, GetProjectile, ReleaseProjecitle, DestroyProjectile);
     }
+
+    #region Projectile Pool
+    private void DestroyProjectile(Projectile projectile)
+    {
+        Destroy(projectile.gameObject);
+    }
+
+    private void ReleaseProjecitle(Projectile projectile)
+    {
+        projectile.Reset();
+        projectile.gameObject.SetActive(false);
+    }
+
+    private void GetProjectile(Projectile projectile)
+    {
+        projectile.gameObject.SetActive(true);
+        projectile.transform.SetPositionAndRotation(shootPoint.position, transform.rotation);
+
+    }
+
+    private Projectile CreateProjectile()
+    {
+        Projectile projectile = Instantiate(bulletPrefab, shootPoint.position, transform.rotation);
+        projectile.SetPool(_projectilePool);
+        return projectile;
+    }
+    
+    #endregion
 
     private void OnEnable()
     {
@@ -46,12 +81,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         input.OnShootPressed -= Shoot;
     }
-
-    private void Update()
-    {
-        
-    }
-
+    
     private void FixedUpdate()
     {
         if (input.MovementInput != 0)
@@ -73,7 +103,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     void Rotate()
     {
         _rb.AddTorque(-input.RotationInput * rotationSpeed);
-        //transform.Rotate(Vector3.forward, -input.RotationInput * rotationSpeed * Time.deltaTime);
     }
 
     void Shoot()
@@ -81,20 +110,41 @@ public class PlayerController : MonoBehaviour, IDamageable
         // TODO: cooldown
         
         AudioManager.Instance.PlaySFX(SFXType.Shoot);
-        Projectile projectile = Instantiate(bulletPrefab, shootPoint.position, transform.rotation);
+
+        Projectile projectile = _projectilePool.Get();
         projectile.Initialize(shootSpeed);
     }
 
     public void TakeDamage(int damage)
     {
-        Health -= damage;
+        if (invincible) return;
         
-        if(Health <= 0) Die();
+        Health -= damage;
+        AudioManager.Instance.PlaySFXRandomPitch(SFXType.Death);
+        
+        if (Health <= 0)
+        {
+            Die();
+            return;
+        }
+        
+        StartCoroutine(InvincibilityFrames());
     }
 
     public void Die()
     {
         GameManager.Instance.FinishGame();
         Destroy(gameObject);
+    }
+
+    IEnumerator InvincibilityFrames()
+    {
+        invincible = true;
+        playerVisual.color = new Color(1, 1, 1, 0.5f); 
+        GetComponent<Collider2D>().isTrigger = true;
+        yield return new WaitForSeconds(invulnerableTime);
+        playerVisual.color = new Color(1, 1, 1, 1);
+        invincible = false;
+        GetComponent<Collider2D>().isTrigger = false;
     }
 }

@@ -18,13 +18,9 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip menuMusic;
     [SerializeField] private AudioClip gameplayMusic;
     
-    [SerializeField] private AudioClip damageAsteroidClip;
-    [SerializeField] private AudioClip destroyAsteroidClip;
-    [SerializeField] private AudioClip deathClip;
-    [SerializeField] private AudioClip shootClip;
-    [SerializeField] private AudioClip highscoreClip;
+    [SerializeField] SoundEffectSO[] soundEffects;
     
-    Dictionary<SFXType, AudioClip> sfxClips = new Dictionary<SFXType, AudioClip>();
+    Dictionary<SFXType, SoundEffectSO> _sfxDictionary = new Dictionary<SFXType, SoundEffectSO>();
 
     public static AudioManager Instance { get; private set;}
     private void Awake()
@@ -39,48 +35,72 @@ public class AudioManager : MonoBehaviour
         }
         
         DontDestroyOnLoad(gameObject);
+        
+        SetupSFXDictionary();
     }
 
-    void Start()
+    private void Start()
     {
-        /* TODO: Move to scriptable object that gets random sounds
-        
-        foreach(sfx in sfxSOList){
-            Populate dictionary
-            
-            sfxDict[sfx.Type] = sfx;
-            
-            sfx.GetSFX
+        PlayMenuMusic();
+    }
+
+    #region Enable/Disable
+    private void OnEnable()
+    {
+        GameManager.Instance.OnGameStateChanged += HandleGameMusic;
+    }
+
+    private void OnDisable()
+    {
+        GameManager.Instance.OnGameStateChanged -= HandleGameMusic;
+    }
+    #endregion
+
+    private void HandleGameMusic(GameState newState)
+    {
+        if(newState == GameState.Playing) PlayGameplayMusic();
+        else if(newState is GameState.Menu or GameState.Waiting) PlayMenuMusic();
+    }
+
+    void SetupSFXDictionary()
+    {
+        for (int i = 0; i < soundEffects.Length; i++)
+        {
+            if (!_sfxDictionary.TryAdd(soundEffects[i].Type, soundEffects[i]))
+            {
+                Debug.LogWarning("Duplicated SFX Type in Audio Manager array!");
+            }
         }
-        
-        
-        */
-
-        sfxClips[SFXType.DamageAsteroid] = damageAsteroidClip;
-        sfxClips[SFXType.DestroyAsteroid] = destroyAsteroidClip; 
-        sfxClips[SFXType.Death] = deathClip;
-        sfxClips[SFXType.Shoot] = shootClip;
-        sfxClips[SFXType.HighScore] = highscoreClip;
     }
 
-    // Update is called once per frame
-    void Update()
+    #region Play Clip methods
+    void PlayMenuMusic()
     {
-        
+        if (musicAudioSource.clip == menuMusic) return; // Don't override music
+        musicAudioSource.clip = menuMusic;
+        musicAudioSource.Play();
     }
 
+    void PlayGameplayMusic()
+    {
+        if(musicAudioSource.clip == gameplayMusic) return; // Don't override music
+        musicAudioSource.clip = gameplayMusic;
+        musicAudioSource.Play();
+    }
     public void PlaySFX(SFXType type)
     {
         sfxAudioSource.pitch = 1f;
-        sfxAudioSource.PlayOneShot(sfxClips[type]);
+        sfxAudioSource.PlayOneShot(_sfxDictionary[type].GetRandomClip());
     }
     
     public void PlaySFXRandomPitch(SFXType type)
     {
         sfxAudioSource.pitch = Random.Range(0.9f, 1.1f);
-        sfxAudioSource.PlayOneShot(sfxClips[type]);
+        sfxAudioSource.PlayOneShot(_sfxDictionary[type].GetRandomClip());
     }
+    #endregion
 
+    #region Volume Settings
     public void SetMusicVolume(float volume)
     {
         volume = math.remap(0, 100, -80, 0, volume);
@@ -106,6 +126,8 @@ public class AudioManager : MonoBehaviour
         vol = math.remap(-80, 0, 0, 100, vol);
         return vol;
     }
+    
+    #endregion
 }
 
 public enum SFXType

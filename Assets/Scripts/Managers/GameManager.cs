@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private bool gameplayScene = false; // !!!FOR TESTING
     private int currentScore = 0;
+    private int _highscore = 0;
     
     private GameState lastState;
     private GameState currentState;
@@ -16,6 +18,8 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnScoreUpdated;
 
     public event Action<GameState> OnGameStateChanged;
+    
+    public int Highscore => _highscore;
     public static GameManager Instance { get; private set;}
 
     private void Awake()
@@ -40,6 +44,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        currentScore = 0;
         OnGameStart?.Invoke();
         SetState(GameState.Playing);
     }
@@ -69,7 +74,11 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 0;
                 break;
             case GameState.Finished:
-                // UIManager.Instance.ShowEndScreen();
+                Time.timeScale = 0;
+
+                bool highscore = CheckNewHighscore();
+                
+                UIManager.Instance.FinishGameScreen(currentScore, _highscore, highscore);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);
@@ -102,20 +111,40 @@ public class GameManager : MonoBehaviour
         OnScoreUpdated?.Invoke(currentScore);
     }
 
+    bool CheckNewHighscore()
+    {
+        bool newHighscore = currentScore > _highscore;
+        if (newHighscore)
+        {
+            _highscore = currentScore;
+            AudioManager.Instance.PlaySFX(SFXType.HighScore);
+        }
+
+        return newHighscore;
+    }
+
     public void FinishGame()
     {
         SetState(GameState.Finished);
     }
-
+    
     IEnumerator StartGameCoroutine()
     {
+        UIManager.Instance.UpdateCountdown(3);
         yield return new WaitForSecondsRealtime(1f);
-        // UIManager.Instance.UpdateCountdown
+        UIManager.Instance.UpdateCountdown(2);
+        yield return new WaitForSecondsRealtime(1f);
+        UIManager.Instance.UpdateCountdown(1);
+        yield return new WaitForSecondsRealtime(1f);
         
         StartGame();
     }
     
-    
+    public void ResetGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SetState(GameState.Waiting);
+    }
 }
 
 public enum GameState

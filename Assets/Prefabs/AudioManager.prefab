@@ -306,8 +306,11 @@ MonoBehaviour:
   sfxMixerGroup: {fileID: 3394676166240463892, guid: db1d7a1060e2f5c43a504376575bb74b, type: 2}
   musicAudioSource: {fileID: 2165072580166125735}
   sfxAudioSource: {fileID: 7890029505559373540}
-  damageAsteroidClip: {fileID: 8300000, guid: 130a177e727814a2ea78a886ab72213d, type: 3}
-  destroyAsteroidClip: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
-  deathClip: {fileID: 8300000, guid: b9eff218e132a4e76be78840eca96fb2, type: 3}
-  shootClip: {fileID: 8300000, guid: 881e3f52c86c94f26a60718d35627cd8, type: 3}
-  highscoreClip: {fileID: 0}
+  menuMusic: {fileID: 8300000, guid: eb50ae4393eff6045bce387e13552be5, type: 3}
+  gameplayMusic: {fileID: 8300000, guid: 76b53e46ff6ef6745931798de86f2bd4, type: 3}
+  soundEffects:
+  - {fileID: 11400000, guid: 672e3c5c8a332fc4aa2cb5463401978c, type: 2}
+  - {fileID: 11400000, guid: b82c66d5483a8324cb048c91aa8e4ed1, type: 2}
+  - {fileID: 11400000, guid: a75461568285ba148bd3e1287ae01818, type: 2}
+  - {fileID: 11400000, guid: 1fb622aa75a84ce4f85d2103f44e9d23, type: 2}
+  - {fileID: 11400000, guid: daa183a4facf6e043bae8169dead5014, type: 2}
