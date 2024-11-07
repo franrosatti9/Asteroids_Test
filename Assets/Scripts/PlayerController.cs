@@ -94,6 +94,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void Die()
     {
+        GameManager.Instance.FinishGame();
         Destroy(gameObject);
     }
 }
