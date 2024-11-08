@@ -22,6 +22,8 @@ public class AudioManager : MonoBehaviour
     
     Dictionary<SFXType, SoundEffectSO> _sfxDictionary = new Dictionary<SFXType, SoundEffectSO>();
 
+    private float normalizedSFXVolume;
+    private float normalizedMusicVolume;
     public static AudioManager Instance { get; private set;}
     private void Awake()
     {
@@ -42,6 +44,9 @@ public class AudioManager : MonoBehaviour
     private void Start()
     {
         PlayMenuMusic();
+
+        normalizedSFXVolume = 1f;
+        normalizedMusicVolume = 1f;
     }
 
     #region Enable/Disable
@@ -103,28 +108,40 @@ public class AudioManager : MonoBehaviour
     #region Volume Settings
     public void SetMusicVolume(float volume)
     {
-        volume = math.remap(0, 100, -80, 0, volume);
-        musicMixerGroup.audioMixer.SetFloat("MusicVol", volume);
+        normalizedMusicVolume = volume;
+        musicMixerGroup.audioMixer.SetFloat("MusicVol", Mathf.Log(volume) * 20);
     }
 
     public void SetSFXVolume(float volume)
     {
-        volume = math.remap(0, 100, -80, 0, volume);
-        musicMixerGroup.audioMixer.SetFloat("SFXVol", volume);
+        normalizedSFXVolume = volume;
+        musicMixerGroup.audioMixer.SetFloat("SFXVol", Mathf.Log(volume) * 20);
     }
 
-    public float GetMusicVolume()
+    public int GetMusicVolumePercentage()
     {
-        musicMixerGroup.audioMixer.GetFloat("MusicVol", out var vol);
+        /*musicMixerGroup.audioMixer.GetFloat("MusicVol", out var vol);
         vol = math.remap(-80, 0, 0, 100, vol);
-        return vol;
+        return vol;*/
+        return (int)(normalizedMusicVolume * 100f);
     }
 
-    public float GetSFXVolume()
+    public int GetSFXVolumePercentage()
     {
-        musicMixerGroup.audioMixer.GetFloat("SFXVol", out var vol);
+        /*musicMixerGroup.audioMixer.GetFloat("SFXVol", out var vol);
         vol = math.remap(-80, 0, 0, 100, vol);
-        return vol;
+        return vol;*/
+        return (int)(normalizedSFXVolume * 100f);
+    }
+
+    public float GetMusicVolumeNormalized()
+    {
+        return normalizedMusicVolume;
+    }
+
+    public float GetSFXVolumeNormalized()
+    {
+        return normalizedSFXVolume;
     }
     
     #endregion

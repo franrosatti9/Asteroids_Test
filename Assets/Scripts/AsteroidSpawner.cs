@@ -18,16 +18,44 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] float maxSize = 4f;
     [SerializeField] private float minSpeed = 3f;
     [SerializeField] private float maxSpeed = 6f;
+    [SerializeField] private float randomRotationRange = 5f;
 
     [SerializeField] private int maxAsteroidsOnScreen = 10;
+
+    [SerializeField] private SpawnerSettingsSO[] difficultySettings;
     
     ObjectPool<Asteroid> _pool;
 
     private float spawnTimer;
+    private bool active = false;
+
+    #region Enable/Disable
+    private void OnEnable()
+    {
+        GameManager.Instance.OnGameStart += ActivateSpawner;
+        GameManager.Instance.OnDifficultyIncreased += HandleDifficultyChange;
+    }
+
+    private void HandleDifficultyChange(int currentDifficulty)
+    {
+        if (difficultySettings.Length - 1 < currentDifficulty) return;
+        
+        ApplySettings(difficultySettings[currentDifficulty]);
+    }
+
+    private void OnDisable()
+    {
+        GameManager.Instance.OnGameStart -= ActivateSpawner;
+    }
+    #endregion
+
     
+
     void Start()
     {
         _pool = new ObjectPool<Asteroid>(CreateAsteroid, GetAsteroid, ReturnToPool, DestroyAsteroid);
+        
+        ApplySettings(difficultySettings[0]);
     }
 
     #region Pool
@@ -60,6 +88,8 @@ public class AsteroidSpawner : MonoBehaviour
 
     void Update()
     {
+        if (!active) return;
+        
         if (spawnTimer > 0)
         {
             spawnTimer -= Time.deltaTime;
@@ -80,16 +110,23 @@ public class AsteroidSpawner : MonoBehaviour
         asteroid.transform.position = GetRandomPosition();
         asteroid.Initialize(GetRandomDirection(asteroid.transform.position), 
             GetRandomSize(), 
-            GetRandomSpeed());
+            GetRandomSpeed(),
+            randomRotationRange);
     }
-
-    private void OnDrawGizmosSelected()
+    
+    private void ActivateSpawner()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
-        
+        active = true;
     }
 
+    void ApplySettings(SpawnerSettingsSO settings)
+    {
+        spawnRate = settings.SpawnRate;
+        minSpeed = settings.MinSpeed;
+        maxSpeed = settings.MaxSpeed;
+        maxAsteroidsOnScreen = settings.MaxAsteroidsOnScreen;
+    }
+    
     Vector2 GetRandomPosition()
     {
         return Random.insideUnitCircle.normalized * spawnRadius;
@@ -97,7 +134,7 @@ public class AsteroidSpawner : MonoBehaviour
     
     Vector2 GetRandomDirection(Vector3 origin)
     {
-        return (transform.position - origin).normalized;
+        return  ((transform.position - origin).normalized);
     }
 
     float GetRandomSize()
@@ -108,5 +145,12 @@ public class AsteroidSpawner : MonoBehaviour
     private float GetRandomSpeed()
     {
         return Random.Range(minSpeed, maxSpeed);
+    }
+    
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        
     }
 }

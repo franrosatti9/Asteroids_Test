@@ -30,13 +30,13 @@ public class Options : MonoBehaviour
     
     private void HandleSFXVolumeChange(float value)
     {
-        sfxVolPercent.text = value.ToString() + "%";
+        sfxVolPercent.text = (int)(value * 100) + "%";
         AudioManager.Instance.SetSFXVolume(value);
     }
 
     private void HandleMusicVolumeChange(float value)
     {
-        musicVolPercent.text = value.ToString() + "%";
+        musicVolPercent.text = (int)(value * 100) + "%";
         AudioManager.Instance.SetMusicVolume(value);
     }
 
@@ -53,14 +53,11 @@ public class Options : MonoBehaviour
 
     void UpdateValues()
     {
-        int sfxVol = (int) AudioManager.Instance.GetSFXVolume();
-        int musicVol = (int) AudioManager.Instance.GetMusicVolume();
+        sfxVolPercent.text = AudioManager.Instance.GetSFXVolumePercentage() + "%";
+        sfxVolumeSlider.value = AudioManager.Instance.GetSFXVolumeNormalized();
         
-        sfxVolPercent.text = sfxVol + "%";
-        sfxVolumeSlider.value = sfxVol;
-        
-        musicVolPercent.text = musicVol + "%";
-        musicVolumeSlider.value = musicVol;
+        musicVolPercent.text = AudioManager.Instance.GetMusicVolumePercentage() + "%";
+        musicVolumeSlider.value = AudioManager.Instance.GetMusicVolumeNormalized();;
     }
    
 }

@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class ScreenBoundaries : MonoBehaviour
 {
-    BoxCollider2D _boxCollider;
-    private Vector2 boundaries;
+    private BoxCollider2D _boxCollider;
+    private Vector2 _boundaries;
 
     private void Awake()
     {
@@ -20,8 +20,8 @@ public class ScreenBoundaries : MonoBehaviour
         _boxCollider.isTrigger = true;
         
         float height = Camera.main.orthographicSize * 2;
-        boundaries = new Vector2(height * Camera.main.aspect, height);
-        _boxCollider.size = boundaries;
+        _boundaries = new Vector2(height * Camera.main.aspect, height);
+        _boxCollider.size = _boundaries;
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -38,18 +38,18 @@ public class ScreenBoundaries : MonoBehaviour
         float dir = 0;
         if (CheckOutOfBoundsX(pos.x, out dir))
         {
-            Debug.Log("Out of bounds X");
+            //Debug.Log("Out of bounds X");
             return new Vector2(pos.x * -1, pos.y) + new Vector2(objectSize.x * .5f * dir, 0);
         }
         else if (CheckOutOfBoundsY(pos.y, out dir))
         {
-            Debug.Log("Out of bounds Y");
+            //Debug.Log("Out of bounds Y");
             return new Vector2(pos.x, pos.y * -1) + new Vector2(0, objectSize.y * .5f * dir);
         }
         else
         {
-            Debug.Log("Not out of bounds");
-            Debug.Log($"X diff: {Mathf.Abs(pos.x) - Mathf.Abs(boundaries.x * .5f)}, Y Diff: {Mathf.Abs(pos.y) - Mathf.Abs(boundaries.y) * .5f}");
+            //Debug.Log("Not out of bounds");
+            //Debug.Log($"X diff: {Mathf.Abs(pos.x) - Mathf.Abs(boundaries.x * .5f)}, Y Diff: {Mathf.Abs(pos.y) - Mathf.Abs(boundaries.y) * .5f}");
             return pos;
         }
         
@@ -57,7 +57,7 @@ public class ScreenBoundaries : MonoBehaviour
 
     private bool CheckOutOfBoundsY(float yPos, out float dir)
     {
-        float diff = Mathf.Abs(yPos) - Mathf.Abs(boundaries.y * .5f);
+        float diff = Mathf.Abs(yPos) - Mathf.Abs(_boundaries.y * .5f);
         dir = Mathf.Sign(yPos);
         if (diff > 0)
         {
@@ -68,8 +68,7 @@ public class ScreenBoundaries : MonoBehaviour
 
     private bool CheckOutOfBoundsX(float xPos, out float dir)
     {
-        
-        float diff = Mathf.Abs(xPos) - Mathf.Abs(boundaries.x * .5f);
+        float diff = Mathf.Abs(xPos) - Mathf.Abs(_boundaries.x * .5f);
         dir = Mathf.Sign(xPos);
         if (diff > 0)
         {

@@ -45,10 +45,15 @@ public class Projectile : MonoBehaviour, IPoolObject<Projectile>
         if(!col.gameObject.TryGetComponent(out ScreenBoundaries boundaries)) DestroyProjectile();
         
     }
-
-    void DestroyProjectile()
+    
+    public void ReleaseToPool()
     {
         CancelInvoke();
         Pool.Release(this);
+    }
+
+    void DestroyProjectile()
+    {
+        ReleaseToPool();
     }
 }

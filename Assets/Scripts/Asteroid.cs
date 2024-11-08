@@ -28,7 +28,7 @@ public class Asteroid : MonoBehaviour, IDamageable, IPoolObject<Asteroid>
         
     }
 
-    public void Initialize(Vector2 direction, float size, float speed)
+    public void Initialize(Vector2 direction, float size, float speed, float randomRotation)
     {
         Health = Mathf.Max(1, Mathf.RoundToInt(size));
         scoreValue = Health * 10;
@@ -36,6 +36,7 @@ public class Asteroid : MonoBehaviour, IDamageable, IPoolObject<Asteroid>
         transform.localScale *= size;
         
         transform.up = direction;
+        transform.Rotate(Vector3.forward, randomRotation);
         _rb.velocity = transform.up * speed;
         
     }
@@ -55,7 +56,7 @@ public class Asteroid : MonoBehaviour, IDamageable, IPoolObject<Asteroid>
         
         AudioManager.Instance.PlaySFX(SFXType.DestroyAsteroid);
         GameManager.Instance.AddScore(scoreValue);
-        Pool.Release(this);
+        ReleaseToPool();
     }
     
     public void Reset()
@@ -70,12 +71,17 @@ public class Asteroid : MonoBehaviour, IDamageable, IPoolObject<Asteroid>
         Pool = pool;
     }
 
+    public void ReleaseToPool()
+    {
+        Pool.Release(this);
+    }
+
     private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.TryGetComponent(out PlayerController player))
         {
             player.TakeDamage(1);
-            Pool.Release(this);
+            ReleaseToPool();
         }
     }
 }
