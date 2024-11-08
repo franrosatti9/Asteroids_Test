@@ -42,7 +42,10 @@ public class Projectile : MonoBehaviour, IPoolObject<Projectile>
             damageable.TakeDamage(damage);
         }
 
-        if(!col.gameObject.TryGetComponent(out ScreenBoundaries boundaries)) DestroyProjectile();
+        if (col.gameObject.TryGetComponent(out ScreenBoundaries boundaries) || // Don't destroy if colliding with DeathZone or Boundaries
+            col.gameObject.TryGetComponent(out DeathZone deathZone)) return;
+        
+        DestroyProjectile();
         
     }
     

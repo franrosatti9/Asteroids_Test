@@ -17,16 +17,14 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField] private float rotationSpeed = 30;
 
     [Header("Shooting")] 
-    [SerializeField] private float shootSpeed;
-    [SerializeField] private Projectile bulletPrefab; //TODO: Object pool
     [SerializeField] private Transform shootPoint;
+    [SerializeField] private WeaponBase currentWeapon;
     
     [FormerlySerializedAs("health")]
     [Header("Health")]
     [SerializeField] private int maxHealth = 5;
     [SerializeField] float invulnerableTime = 1f;
-    
-    ObjectPool<Projectile> _projectilePool;
+
 
     bool invincible = false;
     private Rigidbody2D _rb;
@@ -38,40 +36,12 @@ public class PlayerController : MonoBehaviour, IDamageable
         Health = maxHealth;
     }
 
-    void Start()
+    private void Start()
     {
-        _projectilePool =
-            new ObjectPool<Projectile>(CreateProjectile, GetProjectile, ReleaseProjecitle, DestroyProjectile);
+        InitializeWeapon();
     }
 
-    #region Projectile Pool
-    private void DestroyProjectile(Projectile projectile)
-    {
-        Destroy(projectile.gameObject);
-    }
-
-    private void ReleaseProjecitle(Projectile projectile)
-    {
-        projectile.Reset();
-        projectile.gameObject.SetActive(false);
-    }
-
-    private void GetProjectile(Projectile projectile)
-    {
-        projectile.gameObject.SetActive(true);
-        projectile.transform.SetPositionAndRotation(shootPoint.position, transform.rotation);
-
-    }
-
-    private Projectile CreateProjectile()
-    {
-        Projectile projectile = Instantiate(bulletPrefab, shootPoint.position, transform.rotation);
-        projectile.SetPool(_projectilePool);
-        return projectile;
-    }
-    
-    #endregion
-
+    #region Enable/Disable
     private void OnEnable()
     {
         input.OnShootPressed += Shoot;
@@ -81,7 +51,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         input.OnShootPressed -= Shoot;
     }
-    
+    #endregion
+
+    #region Movement
     private void FixedUpdate()
     {
         if (input.MovementInput != 0)
@@ -104,17 +76,33 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         _rb.AddTorque(-input.RotationInput * rotationSpeed);
     }
+    #endregion
 
+    #region Shooting
     void Shoot()
     {
-        // TODO: cooldown
-        
-        AudioManager.Instance.PlaySFX(SFXType.Shoot);
-
-        Projectile projectile = _projectilePool.Get();
-        projectile.Initialize(shootSpeed);
+        if(currentWeapon.CanShoot()) currentWeapon.Shoot();
     }
+    
+    void InitializeWeapon()
+    {
+        currentWeapon.SetShootPoint(shootPoint);
+    }
+    
+    /*
+    void SwitchWeapon(WeaponBase newWeapon)
+    {
+        Destroy(currentWeapon.gameObject);
 
+        currentWeapon = newWeapon;
+        InitializeWeapon();
+
+    }
+    */
+    #endregion
+    
+    
+    #region Health
     public void TakeDamage(int damage)
     {
         if (invincible) return;
@@ -147,4 +135,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         invincible = false;
         GetComponent<Collider2D>().isTrigger = false;
     }
+    
+    #endregion
+
+    
+
+    
 }

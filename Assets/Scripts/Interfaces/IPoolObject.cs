@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public interface IPoolObject<T> where T : MonoBehaviour
+public interface IPoolObject<T> : IPoolObject where T : MonoBehaviour
 { 
     ObjectPool<T> Pool { get; }
-    void Reset();
+    
     void SetPool(ObjectPool<T> pool);
+}
 
+public interface IPoolObject
+{
+    void Reset();
+    
     void ReleaseToPool();
 }
